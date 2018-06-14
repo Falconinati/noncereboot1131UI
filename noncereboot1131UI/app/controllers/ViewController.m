@@ -14,77 +14,67 @@
 #import "unlocknvram.h"
 #import <string.h>
 
-@interface ViewController ()
-
-@end
-
 @implementation ViewController
 
+#pragma mark view lifecylce
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
     kern_return_t ret = vfs_sploit();
     if (ret != KERN_SUCCESS) {
         exit(-1);
     }
     start(tfp0);
-    [_generatorInput setDelegate:self];
+    [self.generatorInput setDelegate:self];
 }
 
-
-- (void)didReceiveMemoryWarning {
+- (void) didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
+#pragma mark IBActions
 - (IBAction)tappedOnDeleteGenerator:(id)sender {
-    if (!_skipUnlockingNvramSwitch.on) {
+    if (!self.skipUnlockingNvramSwitch.on) {
         unlocknvram();
     }
     if (!delgen()) {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success"                                                   message:@"The generator has been deleted" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success" message:@"The generator has been deleted" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         [self presentViewController:AlertController animated:YES completion:nil];
     } else {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error"                                                   message:@"Failed to deleted the generator" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error" message:@"Failed to deleted the generator" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         [self presentViewController:AlertController animated:YES completion:nil];
     }
-    if (!_skipLockingNvramSwitch.on) {
+    if (!self.skipLockingNvramSwitch.on) {
         locknvram();
     }
 }
 - (IBAction)tappedOnDumpApticket:(id)sender {
     bool ret = dump_apticket([[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"apticket.der"].UTF8String);
-    if(ret)
-    {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success"                                                   message:@"Dumped APTicket" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+    if(ret) {
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success" message:@"Dumped APTicket" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         [self presentViewController:AlertController animated:YES completion:nil];
-    }
-    else
-    {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error"                                                   message:@"Failed to dump APTicket" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+    } else {
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error" message:@"Failed to dump APTicket" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         [self presentViewController:AlertController animated:YES completion:nil];
     }
 }
 
-void openUser(NSString *name) {
+- (void) openUser:(NSString *) name {
     UIApplication *application = [UIApplication sharedApplication];
-    NSString *str = [NSString stringWithFormat:@"%@", _urlForUsername(name)];
+    NSString *str = [NSString stringWithFormat:@"%@", [self urlForUsername:name]];
     NSURL *URL = [NSURL URLWithString:str];
-    [application openURL:URL options:@{} completionHandler:^(BOOL success) {
-        if (success != YES) {
-        }
-    }];
+    [application openURL:URL options:@{} completionHandler:nil];
 }
 
-NSString *_urlForUsername(NSString *user) {
+- (NSString *) urlForUsername:(NSString *) user {
     if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"aphelion://"]]) {
         return [@"aphelion://profile/" stringByAppendingString:user];
     } else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tweetbot://"]]) {
@@ -101,45 +91,49 @@ NSString *_urlForUsername(NSString *user) {
     return nil;
 }
 
-- (IBAction)tappedOnPwn20wnd:(id)sender {
-    openUser(@"Pwn20wnd");
-}
-- (IBAction)tappedOnCoolStar:(id)sender {
-    openUser(@"coolstarorg");
-}
-- (IBAction)tappedOnStek29:(id)sender {
-    openUser(@"stek29");
-}
-- (IBAction)tappedOnIanBeer:(id)sender {
-    openUser(@"i41nbeer");
+- (IBAction)tappedOnPwn20wnd:(id) sender {
+    [self openUser:@"Pwn20wnd"];
 }
 
--(BOOL) textFieldShouldReturn:(UITextField *)textField{
-    if (!_skipLockingNvramSwitch.on) {
+- (IBAction)tappedOnCoolStar:(id) sender {
+    [self openUser:@"coolstarorg"];
+    
+}
+
+- (IBAction)tappedOnStek29:(id) sender {
+    [self openUser:@"stek29"];
+}
+
+- (IBAction)tappedOnIanBeer:(id) sender {
+    [self openUser:@"i41nbeer"];
+}
+
+- (BOOL) textFieldShouldReturn:(UITextField *)textField{
+    if (!self.skipLockingNvramSwitch.on) {
         locknvram();
     }
     
-    const char *generator = [_generatorInput.text UTF8String];
-    if (!_skipUnlockingNvramSwitch.on) {
+    const char *generator = [self.generatorInput.text UTF8String];
+    if (!self.skipUnlockingNvramSwitch.on) {
         unlocknvram();
     }
     setgen(generator);
     char *c = getgen();
-    if (!_skipLockingNvramSwitch.on) {
+    if (!self.skipLockingNvramSwitch.on) {
         locknvram();
     }
     double delayInSeconds = 0.1;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
     if (!strcmp(generator, c)) {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success"                                                   message:@"The generator has been set" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Success" message:@"The generator has been set" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             [self presentViewController:AlertController animated:YES completion:nil];
         });
     } else {
-        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error"                                                   message:@"Failed to validate generator" preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK"                                     style:UIAlertActionStyleDefault handler:nil];
+        UIAlertController *AlertController = [UIAlertController alertControllerWithTitle:@"Error" message:@"Failed to validate generator" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *OK = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
         [AlertController addAction:OK];
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             [self presentViewController:AlertController animated:YES completion:nil];
